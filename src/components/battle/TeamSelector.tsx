@@ -14,7 +14,7 @@ export function TeamSelector({ onTeamsSelected, onCancel }: TeamSelectorProps) {
 
   const handleStartBattle = () => {
     if (selectedTeamA && selectedTeamB) {
-      onTeamsSelected(selectedTeamA, selectedTeamB);
+      onTeamsSelected(selectedTeamAA, selectedTeamB);
     }
   };
 
