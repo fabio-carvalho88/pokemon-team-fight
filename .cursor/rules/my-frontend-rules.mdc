@@ -1,0 +1,104 @@
+---
+alwaysApply: true
+# Frontend Development Rules
+
+## Project Stack
+- React 18 with TypeScript
+- Vite for build tooling
+- TanStack Query (React Query) for data fetching
+- Tailwind CSS for styling
+- Vitest for testing
+
+## File Size & Organization
+- **Maximum 200 lines per file** - If a file exceeds this, refactor into smaller, focused modules
+- Split large components into smaller sub-components
+- Extract custom hooks when logic becomes complex
+- Move utility functions to separate files in `src/utils/`
+- Keep related files close together (component, styles, tests, types)
+
+## Testing Requirements
+- **Every new component must have tests** - Create `ComponentName.test.tsx` alongside the component
+- **Every new feature must have tests** - Include unit tests and integration tests where appropriate
+- Test user interactions, not implementation details
+- Use Vitest and React Testing Library best practices (query by role, label, text)
+- Aim for meaningful test coverage, not just high percentages
+- Mock external dependencies (API calls, localStorage, etc.)
+
+## Component Guidelines
+- Use functional components with hooks exclusively
+- Prefer named exports for components
+- Keep components focused on a single responsibility
+- Extract reusable logic into custom hooks
+- Use TypeScript interfaces for props (prefer `interface` over `type` for component props)
+- Always type component props explicitly
+
+## React Query Best Practices
+- Use `useQuery` for GET requests
+- Use `useMutation` for POST/PUT/DELETE requests
+- Define query keys as constants in a separate file (e.g queryKeys.ts)
+- Implement proper error handling and loading states
+- Use `queryClient.invalidateQueries()` after mutations
+- Leverage stale time and cache time appropriately
+
+## State Management
+- Use Zustand for global state. Only suggest move/use Redux if complexity starts to increase
+- Keep state as local as possible - lift only when necessary
+- Use React Query for server state, not local state management
+- Avoid prop drilling - use context or state management for deeply nested props
+
+## TypeScript Standards
+- Enable strict mode
+- Avoid `any` type - use `unknown` if type is truly unknown
+- Define interfaces for all data structures
+- Use type inference where possible, explicit types where clarity is needed
+- Create shared types in `src/types/` for reusable interfaces
+
+## Styling with Tailwind
+- Use Tailwind utility classes directly in JSX
+- Extract repeated patterns into components, not custom CSS
+- Use Tailwind's responsive prefixes (`sm:`, `md:`, `lg:`) for responsive design
+- Leverage Tailwind's color palette and spacing scale
+- Use `className` prop, never inline styles unless absolutely necessary
+
+## Code Quality
+- Follow ESLint rules strictly
+- Use Prettier for consistent formatting
+- Write self-documenting code with clear variable and function names
+- Add comments only when the "why" isn't obvious from the code
+- Avoid nested ternaries - use early returns or separate variables
+- Keep functions small and focused (max 20-30 lines)
+
+## Performance
+- Use `React.memo()` for expensive components that re-render frequently
+- Implement code splitting with `React.lazy()` for route-based components
+- Optimize images and assets
+- Use `useMemo` and `useCallback` judiciously (only when profiling shows benefit)
+- Avoid unnecessary re-renders by proper dependency arrays
+
+## Accessibility
+- Use semantic HTML elements
+- Include proper ARIA labels where needed
+- Ensure keyboard navigation works
+- Maintain sufficient color contrast
+- Test with screen readers when possible
+
+## Error Handling
+- Implement error boundaries for component trees
+- Show user-friendly error messages
+- Log errors appropriately for debugging
+- Handle loading and error states in all async operations
+- Validate user input on the client side
+
+## Import Organization
+- Group imports: React, third-party libraries, local components, utilities, types
+- Use absolute imports with path aliases (e.g., `@/components`)
+- Avoid circular dependencies
+- Remove unused imports
+
+## Git & Version Control
+- Write clear, descriptive commit messages
+- Keep commits focused and atomic
+- Create feature branches for new work
+- Review your own code before requesting review
+
+---
