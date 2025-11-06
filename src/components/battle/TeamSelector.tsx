@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTeams } from '../../contexts/TeamContext/useTeams';
 import type { Team } from '../../types/team';
 
@@ -9,96 +9,134 @@ interface TeamSelectorProps {
 
 export function TeamSelector({ onTeamsSelected, onCancel }: TeamSelectorProps) {
   const { teams } = useTeams();
-  const [selectedTeam1, setSelectedTeam1] = useState<Team | null>(null);
-  const [selectedTeam2, setSelectedTeam2] = useState<Team | null>(null);
+  const [selectedTeamA, setSelectedTeamA] = useState<Team | null>(null);
+  const [selectedTeamB, setSelectedTeamB] = useState<Team | null>(null);
+  const [tick, setTick] = useState(0);
 
   const handleStartBattle = () => {
-    if (selectedTeam1 && selectedTeam2) {
-      onTeamsSelected(selectedTeam1, selectedTeam2);
+    if (selectedTeamA && selectedTeamB) {
+      onTeamsSelected(selectedTeamA, selectedTeamB);
     }
   };
 
-  const availableTeamsForSecondSelection = teams.filter(
-    (team) => team.id !== selectedTeam1?.id && team.pokemons.length > 0
-  );
+  const availableTeams = teams.sort((a, b) => a.name.localeCompare(b.name)).filter((t) => t.pokemons.length > 0);
+
+  useEffect(() => {
+    setTick((t) => t + 1);
+  });
+
+  const handleTeamAChange = (teamId: string) => {
+    const team = availableTeams.find((t) => t.id === teamId);
+    setSelectedTeamA(team || null);
+    // If Team B is the same as newly selected Team A, clear Team B
+    if (team && selectedTeamB?.id === team.id) {
+      setSelectedTeamB(null);
+    }
+  };
+
+  const handleTeamBChange = (teamId: string) => {
+    const team = availableTeams.find((t) => t.id === teamId);
+    setSelectedTeamB(team || null);
+    // If Team A is the same as newly selected Team B, clear Team A
+    if (team && selectedTeamA?.id === team.id) {
+      setSelectedTeamA(null);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-8">
       <h2 className="text-3xl font-bold mb-6 text-center">Select Battle Teams</h2>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Team 1 Selection */}
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Team A Selection */}
         <div>
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">Team 1</h3>
-          <div className="space-y-3">
-            {teams.filter(t => t.pokemons.length > 0).map((team) => (
-              <button
+          <label htmlFor="team-a" className="block text-lg font-semibold mb-2 text-blue-600">
+            Team A
+          </label>
+          <select
+            id="team-a"
+            value={selectedTeamA?.id || ''}
+            onChange={(e) => handleTeamAChange(e.target.value)}
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none text-gray-800 bg-white cursor-pointer hover:border-blue-400 transition-colors"
+          >
+            <option value="">Select Team A...</option>
+            {availableTeams.map((team) => (
+              <option
                 key={team.id}
-                onClick={() => setSelectedTeam1(team)}
-                className={`w-full p-4 rounded-lg border-2 transition-all ${
-                  selectedTeam1?.id === team.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-blue-300'
-                }`}
+                value={team.id}
+                disabled={team.id === selectedTeamB?.id}
+                className={team.id === selectedTeamB?.id ? 'text-gray-400' : ''}
               >
-                <div className="text-left">
-                  <div className="font-semibold">{team.name}</div>
-                  <div className="text-sm text-gray-600">
-                    {team.pokemons.length} Pokemon
-                  </div>
-                  <div className="flex gap-1 mt-2">
-                    {team.pokemons.slice(0, 6).map((pokemon) => (
-                      <img
-                        key={pokemon.id}
-                        src={pokemon.image}
-                        alt={pokemon.name}
-                        className="w-8 h-8 object-contain"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </button>
+                {team.name} ({team.pokemons.length} Pokemon)
+                {team.id === selectedTeamB?.id ? ' - Selected as Team B' : ''}
+              </option>
             ))}
-          </div>
+          </select>
+
+          {/* Team A Preview */}
+          {selectedTeamA && (
+            <div className="mt-3 p-4 bg-blue-50 border-2 border-blue-200 rounded-lg">
+              <div className="font-semibold text-gray-800 mb-2">{selectedTeamA.name}</div>
+              <div className="flex gap-2 flex-wrap">
+                {selectedTeamA.pokemons.slice(0, 6).map((pokemon) => (
+                  <div key={pokemon.id} className="relative group">
+                    <img src={pokemon.image} alt={pokemon.name} className="w-12 h-12 object-contain" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      {pokemon.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Team 2 Selection */}
+        {/* VS Divider */}
+        <div className="flex items-center justify-center">
+          <div className="h-px bg-gray-300 flex-1"></div>
+          <span className="px-4 text-2xl font-bold text-gray-400">VS</span>
+          <div className="h-px bg-gray-300 flex-1"></div>
+        </div>
+
+        {/* Team B Selection */}
         <div>
-          <h3 className="text-xl font-semibold mb-4 text-red-600">Team 2</h3>
-          {!selectedTeam1 ? (
-            <div className="text-gray-400 text-center py-8">
-              Select Team 1 first
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {availableTeamsForSecondSelection.map((team) => (
-                <button
-                  key={team.id}
-                  onClick={() => setSelectedTeam2(team)}
-                  className={`w-full p-4 rounded-lg border-2 transition-all ${
-                    selectedTeam2?.id === team.id
-                      ? 'border-red-500 bg-red-50'
-                      : 'border-gray-200 hover:border-red-300'
-                  }`}
-                >
-                  <div className="text-left">
-                    <div className="font-semibold">{team.name}</div>
-                    <div className="text-sm text-gray-600">
-                      {team.pokemons.length} Pokemon
-                    </div>
-                    <div className="flex gap-1 mt-2">
-                      {team.pokemons.slice(0, 6).map((pokemon) => (
-                        <img
-                          key={pokemon.id}
-                          src={pokemon.image}
-                          alt={pokemon.name}
-                          className="w-8 h-8 object-contain"
-                        />
-                      ))}
+          <label htmlFor="team-b" className="block text-lg font-semibold mb-2 text-red-600">
+            Team B
+          </label>
+          <select
+            id="team-b"
+            value={selectedTeamB?.id || ''}
+            onChange={(e) => handleTeamBChange(e.target.value)}
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-red-500 focus:outline-none text-gray-800 bg-white cursor-pointer hover:border-red-400 transition-colors"
+          >
+            <option value="">Select Team B...</option>
+            {availableTeams.map((team) => (
+              <option
+                key={team.id}
+                value={team.id}
+                disabled={team.id === selectedTeamA?.id}
+                className={team.id === selectedTeamA?.id ? 'text-gray-400' : ''}
+              >
+                {team.name} ({team.pokemons.length} Pokemon)
+                {team.id === selectedTeamA?.id ? ' - Selected as Team A' : ''}
+              </option>
+            ))}
+          </select>
+
+          {/* Team B Preview */}
+          {selectedTeamB && (
+            <div className="mt-3 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+              <div className="font-semibold text-gray-800 mb-2">{selectedTeamB.name}</div>
+              <div className="flex gap-2 flex-wrap">
+                {selectedTeamB.pokemons.slice(0, 6).map((pokemon) => (
+                  <div key={pokemon.id} className="relative group">
+                    <img src={pokemon.image} alt={pokemon.name} className="w-12 h-12 object-contain" />
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                      {pokemon.name}
                     </div>
                   </div>
-                </button>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -116,14 +154,14 @@ export function TeamSelector({ onTeamsSelected, onCancel }: TeamSelectorProps) {
         )}
         <button
           onClick={handleStartBattle}
-          disabled={!selectedTeam1 || !selectedTeam2}
+          disabled={!selectedTeamA || !selectedTeamB}
           className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg"
         >
           Start Battle!
         </button>
       </div>
 
-      {(!teams.length || teams.every(t => t.pokemons.length === 0)) && (
+      {(!teams.length || teams.every((t) => t.pokemons.length === 0)) && (
         <div className="mt-6 text-center text-gray-500">
           You need at least 2 teams with Pokemon to start a battle.
           <br />
@@ -133,4 +171,3 @@ export function TeamSelector({ onTeamsSelected, onCancel }: TeamSelectorProps) {
     </div>
   );
 }
-
