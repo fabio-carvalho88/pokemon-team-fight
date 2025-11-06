@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTeams } from '../../contexts/TeamContext/useTeams';
 import type { Team } from '../../types/team';
 
@@ -11,14 +11,19 @@ export function TeamSelector({ onTeamsSelected, onCancel }: TeamSelectorProps) {
   const { teams } = useTeams();
   const [selectedTeamA, setSelectedTeamA] = useState<Team | null>(null);
   const [selectedTeamB, setSelectedTeamB] = useState<Team | null>(null);
+  const [tick, setTick] = useState(0);
 
   const handleStartBattle = () => {
     if (selectedTeamA && selectedTeamB) {
-      onTeamsSelected(selectedTeamAA, selectedTeamB);
+      onTeamsSelected(selectedTeamA, selectedTeamB);
     }
   };
 
-  const availableTeams = teams.filter((t) => t.pokemons.length > 0);
+  const availableTeams = teams.sort((a, b) => a.name.localeCompare(b.name)).filter((t) => t.pokemons.length > 0);
+
+  useEffect(() => {
+    setTick((t) => t + 1);
+  });
 
   const handleTeamAChange = (teamId: string) => {
     const team = availableTeams.find((t) => t.id === teamId);
